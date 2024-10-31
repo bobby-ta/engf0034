@@ -36,6 +36,9 @@ class RiverObject():
         (frog_x, frog_y) = frog.get_position()
         if frog_y != self.y or frog_x < self.x or frog_x > self.x + self.width:
             return False
+        print(frog_y, self.y)
+        print(frog.x, self.x, self.x + self.width)
+        print("frog on log")
         return True
 
 #logs and turtles are both river objects - they move and act mostly the same
@@ -136,14 +139,16 @@ class Frog():
             return
         self.direction = dir
         self.moving = True
+        print(self.y)
         self.start_move_time = time.time()
         if dir == Direction.LEFT:
             self.x = self.x - GRID_SIZE//2
         elif dir == Direction.RIGHT:
             self.x = self.x + GRID_SIZE//2
-        elif dir == Direction.UP:
+        elif dir == Direction.UP and self.y > 120:
             self.y = self.y - GRID_SIZE//2
-        elif dir == Direction.DOWN:
+        elif dir == Direction.DOWN and self.y < 600:
+            print("go down")
             self.y = self.y + GRID_SIZE//2
 
     def finish_move(self):
@@ -154,9 +159,9 @@ class Frog():
             self.x = self.x - GRID_SIZE//2
         elif dir == Direction.RIGHT:
             self.x = self.x + GRID_SIZE//2
-        elif dir == Direction.UP:
+        elif dir == Direction.UP and self.y > 120:
             self.y = self.y - GRID_SIZE//2
-        elif dir == Direction.DOWN:
+        elif dir == Direction.DOWN and self.y < 600:
             self.y = self.y + GRID_SIZE//2
         self.moving = False
 
@@ -262,7 +267,7 @@ class Model():
         # the left of the home) + GRID_SIZE/2 (to get the centre of the
         # grid square)
         x = (spacing + GRID_SIZE)//2
-        for i in range(0,6):
+        for i in range(0,5):
             x = x + GRID_SIZE + spacing
             self.homes_x.append(x)
             self.homes_occupied.append(False)
@@ -291,7 +296,7 @@ class Model():
         self.pause_start(1, "self.next_level()")
 
     def reset_homes(self):
-        for i in range(0,6):
+        for i in range(0,5):
             self.homes_occupied[i] = False
 
     def died(self):
@@ -317,6 +322,7 @@ class Model():
             
     def new_life(self):
         self.controller.update_lives(self.lives)
+        self.frog.reset_position()
 
     def game_over(self):
         self.game_running = False
@@ -368,7 +374,7 @@ class Model():
             # check if it's now on any other log
             for log in self.logs:
                 if log.contains(self.frog):
-                    on_long = log
+                    on_log = log
                     break
         if on_log is None:
             # frog is not on a log - it must be in the water
@@ -387,14 +393,15 @@ class Model():
                 return
 
     def check_frog_entering_home(self):
+        print(self.homes_occupied)
         # frog is attempting to enter home
         (x, y) = self.frog.get_position()
-        for i in range(0, 5):
+        for i in range(0, 4):
             if abs(self.homes_x[i] - x) < GRID_SIZE/2 and not self.homes_occupied[i]:
                 #we're in a free home
                 self.frog_is_home(i)
                 return
-        self.died()
+        #self.died()
 
     def check_frog(self):
         if self.frog.moving:

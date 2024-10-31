@@ -4,6 +4,9 @@ from math import sqrt
 from random import *
 from time import time
 
+#Speed up for testing purposes
+speedup = 12
+
 # some global constants
 CANVAS_WIDTH = 1000
 CANVAS_HEIGHT = 700
@@ -40,7 +43,7 @@ canvas.itemconfig(score_text, text="Score:", font=scorefont)
 
 #create game objects
 #plane
-plane_x = CANVAS_WIDTH - 100
+plane_x = CANVAS_WIDTH + 100
 plane_y = 0
 plane_start_x = plane_x
 plane_start_y = plane_y
@@ -64,6 +67,7 @@ bomb_x = 0
 bomb_y = 0
 ''' bomb_points contains x,y coordinate pairs to draw a bomb with top left              
     corner at position 0,0'''
+#height 20, width 10
 bomb_points = [0,0, 10,0, 5,5, 10,10, 10,20, 5,22, 0,20, 0,10, 5,5]
 bomb_polygon = canvas.create_polygon(*bomb_points, fill="black")
 bomb_drawn = True
@@ -73,7 +77,7 @@ building_heights = []
 building_xpos = []
 building_rects = []
 building_width = SPACING * 0.8
-for building_num in range(0, 1200//SPACING):
+for building_num in range(0, CANVAS_WIDTH//SPACING):
     height = rand.randint(10,500) #random number between 10 and 500
     building_heights.append(height)
     x = building_num*SPACING
@@ -98,7 +102,7 @@ while prog_running:
         rebuild_buildings = False
         if ev.char == ' ':
             # don't drop again while bomb is still falling
-            if not bomb_falling:
+            if not bomb_falling and plane_x > 0:
                 bomb_falling = True
                 bomb_x = plane_x
                 bomb_y = plane_y
@@ -134,14 +138,14 @@ while prog_running:
             # we start a new level, so must rebuild the buildings
             # remove any old buildings
             if len(building_rects) > 0:
-                for building_num in range(0, 1200//SPACING):
+                for building_num in range(0, CANVAS_WIDTH//SPACING):
                     canvas.delete(building_rects[building_num])
             building_rects.clear()
             building_heights.clear()
             building_xpos.clear()
 
             # create the new ones
-            for building_num in range(0, 1200//SPACING):
+            for building_num in range(0, CANVAS_WIDTH//SPACING):
                 height = rand.randint(10,500) #random number between 10 and 500
                 building_heights.append(height)
                 x = building_num*SPACING
@@ -151,9 +155,9 @@ while prog_running:
             
     if game_running:
         # move the plane however much it moves during one frame
-        plane_x = plane_x - 4 * speed
+        plane_x = plane_x - 4 * speed * speedup
         if plane_x < -plane_width:
-            plane_x += CANVAS_WIDTH
+            plane_x += CANVAS_WIDTH + plane_width
             plane_y = plane_y + 40
             # check we don't go off the bottom of the screen
             if plane_y > CANVAS_HEIGHT:
@@ -165,21 +169,25 @@ while prog_running:
         # base of the fuselage hits.  Won't worry if the wing hits though.
         plane_nose_pos = [plane_x, plane_y + 28]
         plane_body_pos = [plane_x + 12, plane_y + 32]
-        for building_num in range(0, 1200//SPACING):
-            if ((plane_nose_pos[0] >= building_xpos[building_num]
+        for building_num in range(0, CANVAS_WIDTH//SPACING):
+            if  building_heights[building_num] > 0 and ((plane_nose_pos[0] >= building_xpos[building_num]
                  and plane_nose_pos[0] <= building_xpos[building_num] + building_width
                  and plane_nose_pos[1] >= CANVAS_HEIGHT - building_heights[building_num])
                 or (plane_body_pos[0] >= building_xpos[building_num]
                  and plane_body_pos[0] <= building_xpos[building_num] + building_width
                  and plane_body_pos[1] >= CANVAS_HEIGHT - building_heights[building_num])):
                 # game over
-                game_running = False
-                won = False
-                msg_text = canvas.create_text(CANVAS_WIDTH/2, CANVAS_HEIGHT/2, anchor="c")
-                canvas.itemconfig(msg_text, text="GAME OVER!", font=bigfont)
+                print(plane_x, plane_y)
+                print(plane_nose_pos, plane_body_pos)
+                print(building_num, building_heights[building_num], building_heights)
+                if 0 < plane_x < 990:
+                    game_running = False
+                    won = False
+                    msg_text = canvas.create_text(CANVAS_WIDTH/2, CANVAS_HEIGHT/2, anchor="c")
+                    canvas.itemconfig(msg_text, text="GAME OVER!", font=bigfont)
 
         #have we landed yet?
-        if plane_body_pos[1] == CANVAS_HEIGHT and plane_body_pos[0] < 20:
+        if plane_body_pos[1] >= CANVAS_HEIGHT and plane_body_pos[0] < 20:
             game_running = False
             won = True
             score = score + 1000
@@ -191,20 +199,27 @@ while prog_running:
 
         if bomb_falling:
             #move the bomb
-            bomb_y = bomb_y + 8 * speed
+            bomb_y = bomb_y + 8 * speed * speedup**4
             #check if the bomb has hit a building
-            for building_num in range(0, 1200//SPACING):
-                if (bomb_x >= building_xpos[building_num]
-                    and bomb_x <= building_xpos[building_num] + building_width
+            for building_num in range(0, CANVAS_WIDTH//SPACING):
+                if (bomb_x >= building_xpos[building_num] - 10 
+                    and bomb_x <= building_xpos[building_num] + building_width + 10
                     and bomb_y >= CANVAS_HEIGHT - building_heights[building_num]):
                     #explode
                     bomb_falling = False
                     #shrink the building
-                    building_heights[building_num] = building_heights[building_num] - 50
+                    if building_heights[building_num] < 50:
+                        building_heights[building_num] -= 50 #avoid drawing buildings into the ground (plane crash land)
+                    else:
+                        building_heights[building_num] = building_heights[building_num] - 50
                     canvas.delete(building_rects[building_num])
                     x = building_xpos[building_num]
                     building_rects[building_num] = canvas.create_rectangle(x, CANVAS_HEIGHT, x + building_width,
                                                                            CANVAS_HEIGHT-building_heights[building_num], fill="brown")
+                    print("Building height: ", building_heights[building_num])
+            #check if bomb has hit a gap
+            if bomb_y >= CANVAS_HEIGHT:
+                bomb_falling = False
         canvas.delete(plane_body)
         canvas.delete(plane_wing1)
         canvas.delete(plane_wing2)

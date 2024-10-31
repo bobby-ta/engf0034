@@ -43,7 +43,7 @@ class Point(object):
     def distance(self, other):
         dx = self.X - other.X
         dy = self.Y - other.Y
-        return math.sqrt(dx**2 + dy**2)
+        return sqrt(dx**2 + dy**2)
 
 ''' update_position takes a list of x and y coordinates and a Point.
     It creates a new list of x and y coordintes by adding the Point to all
@@ -240,6 +240,8 @@ class Display(Frame):
             if building.is_inside(self.bomb.position):
                 self.bomb.explode()
                 building.shrink()
+        # did the bomb hit the bottom (in gap)?
+        if 
 
     ''' check the state of the plane each frame '''
     def check_plane(self):

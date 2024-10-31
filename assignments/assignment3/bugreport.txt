@@ -1,0 +1,24 @@
+1) Logs/turtles don't work
+Frog should stay with/float on log
+Correct typo on_long() to on_log()
+
+2) Dying once kills you completely
+Frog should go back to start position
+Add self.frog.reset_position() when frog respawns in new_life(self)
+
+3) Game is unplayable on respawn after dying completely
+
+
+4) Frog can move down offscreen indefinitely
+Should stop at bottom
+Only move down if frog y < 600
+
+5) Timer is so absolutely massive you can't even tell it's running
+TImer should fit in screen
+Scale timer - change 20 in ```CANVAS_WIDTH - 100 - 20 * remaining``` to scaled value ```timer_sizing = (CANVAS_WIDTH - 100) / LEVEL_TIME
+
+6) Game continues after time runs out
+
+7) Going into first home kills the frog
+
+

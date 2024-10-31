@@ -4,6 +4,7 @@ from tkinter import *
 from tkinter import font
 import time
 from fr_settings import CANVAS_WIDTH, CANVAS_HEIGHT, GRID_SIZE, LOG_HEIGHT, Direction
+from fr_model import LEVEL_TIME
 
 '''GameObjectView is a generic view of a game object.  All it does is
    handle moving of the object - it just saves replicating this code into
@@ -166,7 +167,8 @@ class TimeView():
         remaining = self.end_time - time_now
         if remaining > 0:
             self.canvas.delete(self.bar)
-            self.bar = self.canvas.create_rectangle(CANVAS_WIDTH - 20*remaining - 100, GRID_SIZE*16.25,
+            timer_sizing = (CANVAS_WIDTH - 100) / LEVEL_TIME
+            self.bar = self.canvas.create_rectangle(CANVAS_WIDTH - 100 - timer_sizing*remaining, GRID_SIZE*16.25,
                                                CANVAS_WIDTH - 100, GRID_SIZE*16.75, fill="green")
 
             

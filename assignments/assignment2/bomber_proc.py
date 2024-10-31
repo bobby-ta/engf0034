@@ -230,6 +230,8 @@ def check_bomb(canvas, bomb_pos, building_width, building_heights, building_xpos
         if is_inside_building(building_num, bomb_pos, building_width, building_heights, building_xpos):
             explode()
             shrink_building(canvas, building_num, building_width, building_heights, building_xpos, building_rects)
+    # did the bomb hit a gap?
+    
     
 
 ''' check the state of the plane each frame '''

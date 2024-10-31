@@ -1,0 +1,31 @@
+1) Bug: Dropping bomb into a gap disables dropping any more bombs
+Why: Program waits for the bomb to hit target to reload - bomb in gap never hits target
+What should happen: Reload when previous bomb hits OR reaches bottom of screen
+Reproduction: Drop bomb into gap
+Fix: if bomb_y >= CANVAS_HEIGHT, bomb_falling = False
+
+2) Bug: 1st building is useless - can't be bombed and collisions don't register
+Why: Plane nose spawns in ahead of 1st building already: plane_x += CANVAS_WIDTH
+What should happen: Plane able to collide with/bomb 1st building
+Reproduction: Play until plane goes through 1st building, try to bomb it
+Fix: Spawn plane right of 1st building: plane_x += CANVAS_WIDTH + plane_width
+
+3) Bug: Can't land, plane goes underground
+Why: Program checks if plane's y == CANVAS_HEIGHT, but plane is moved to below bottom when at landing height
+What should happen: Play until plane hits ground
+Fix: Check if plane's y >= CANVAS_HEIGHT, set building height to 0 if it is less than 50 and gets hit
+
+4) Bug: Bomb can be dropped while offscreen, forcing a wait time when the plane reappears
+Why: Nothing prevents it
+What should happen: Can't drop bomb while offscreen
+Fix: add plane_x > 0 to (if not bomb_falling)
+
+5) Bug: Bombs can slide down buildings (i.e. half of bomb is inside building, other half is outside, but no hit detected)
+Why: Code checks if WHOLE bomb is inside building
+What should happen: Check if bomb is touching building
+Fix: Add 10px (bomb width) margin on both sides of building in if-statement (bomb_x >= building_xpos[building_num] - 10 and bomb_x <= building_xpos[building_num] + building_width + 10)
+
+6) Bug: Plane crashes offscreen at landing height
+Why: Honestly idk
+What should happen: The plane should not crash for no apparent reason
+Fix: Check if building_height == 0 before crash check
